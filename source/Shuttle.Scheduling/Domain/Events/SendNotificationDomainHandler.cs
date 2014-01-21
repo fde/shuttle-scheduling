@@ -17,8 +17,7 @@ namespace Shuttle.Scheduling
 			this.scheduleRepository = scheduleRepository;
 		}
 
-		public IServiceBus Bus { get; set; }
-		public IDatabaseConnectionFactory DatabaseConnectionFactory { get; set; }
+		public IServiceBus Bus { get; set; }		
 
 		public void Handle(SendNotification args)
 		{            

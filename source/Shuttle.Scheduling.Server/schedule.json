@@ -1,7 +1,7 @@
 ﻿[
 	{
-	Id:"test",
-	CronString:"* * * * *",
+	Id:"PING",
+	CronString:"10 * * * *",
 	QueueConnectionString: "msmq://./quickstart_server_inbox_work",
 	LastRunUtc:127336384520000000
 	}

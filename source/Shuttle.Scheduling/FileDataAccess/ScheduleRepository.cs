@@ -12,14 +12,22 @@ namespace Shuttle.Scheduling.FileDataAccess
     {
         #region IScheduleRepository Members
 
+        private readonly IScheduleFactory scheduleFactory;
+
+        public ScheduleRepository(IScheduleFactory scheduleFactory)
+        {
+            this.scheduleFactory = scheduleFactory;
+        }
+
         private static ReaderWriterLockSlim locker = new ReaderWriterLockSlim();
 
         public IEnumerable<Schedule> All()
         {
+            
             locker.EnterReadLock();
             var result = UnsafeReadSchedule();
             locker.ExitReadLock();
-            return result.Select(r => new Schedule(r.Id, r.QueueConnectionString, new Core.Infrastructure.CronExpression(r.CronString), DateTime.FromFileTimeUtc(r.LastRunUtc))).ToList(); ;
+            return result.Select(r => scheduleFactory.Build(r.Id,r.QueueConnectionString,r.CronString,DateTime.FromFileTime(r.LastRunUtc))).ToList();                
         }
 
         private static List<ScheduleStorageItem> UnsafeReadSchedule()
@@ -42,7 +50,7 @@ namespace Shuttle.Scheduling.FileDataAccess
             {
                 Id = schedule.Id,
                 CronString = schedule.CronExpression.Expression,
-                LastRunUtc = schedule.NextNotification.ToFileTimeUtc(),
+                LastRunUtc = schedule.NextNotification.ToFileTime(),
                 QueueConnectionString = schedule.InboxWorkQueueUri
             });
 
