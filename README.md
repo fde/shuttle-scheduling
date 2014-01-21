@@ -35,3 +35,10 @@ The basic idea behind the scheduling is that you will have endpoints that alread
 Instead you can set up how often the **RunScheduleCommand** is sent to a particular endpoint.  In this case it may be the same endpoint that processes the **PrintInvoicesCommand**.  It is, therefore, quite conceivable that an endpoint may receive a number of **RunScheduleCommand** requests, each with a different *Name*.  The handler for this command on the endpoint could use a ```switch``` statement to then do a ```bus.SendLocal``` to send the relevant ***actual*** command to be processed.
 
 So by adding this layer of indirection we can have enterprise-grade scheduling that is not at all intrusive and leverages existing functionality.
+
+
+## Fde's fork notes
+
+Original version uses the SQL database for metadata and schedulling plan storage. It doesn't fit the case when queue provider is MSMQ and queue infrastructure doesn't have SQL Server at all. As a workaround it's uses json file in app folder.
+
+The modification assume to work in lab environment. It does NOT support multiple workers and configuration file system cache.
