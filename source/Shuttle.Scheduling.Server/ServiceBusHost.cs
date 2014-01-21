@@ -25,8 +25,7 @@ namespace Shuttle.Scheduling.Server
 		private IServiceBus bus;
 
 		private volatile bool running = true;
-		private Thread thread;
-		private IDatabaseConnectionFactory databaseConnectionFactory;
+		private Thread thread;		
 		private IScheduleRepository repository;
 
 		private readonly int millisecondsBetweenScheduleChecks = ConfigurationItem<int>.ReadSetting("MillisecondsBetweenScheduleChecks", 5000).GetValue();
@@ -45,16 +44,13 @@ namespace Shuttle.Scheduling.Server
 			XmlConfigurator.Configure();
 
 			Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof (Program))));
-
-            ConnectionStrings.Approve();
+            
 
             container.RegisterSingleton("Shuttle.Core.Infrastructure", RegexPatterns.EndsWith("Factory"));
 			container.RegisterSingleton("Shuttle.Core.Infrastructure", RegexPatterns.EndsWith("Mapper"));
 
 			container.RegisterDataAccessCore();
-			container.RegisterDataAccessDefaults();
-
-			container.Register(Component.For<IDatabaseConnectionCache>().ImplementedBy<ThreadStaticDatabaseConnectionCache>());
+			container.RegisterDataAccessDefaults();			
 
 			container.RegisterDataAccess("Shuttle.Scheduling");
 			container.RegisterSingleton("Shuttle.Scheduling", RegexPatterns.EndsWith("Factory"));
@@ -64,14 +60,13 @@ namespace Shuttle.Scheduling.Server
 
 			bus = ServiceBus
 				.Create()
-				.SubscriptionManager(SubscriptionManager.Default())
+				//.SubscriptionManager(SubscriptionManager.Default())
 				.AddModule(new ActiveTimeRangeModule())
 				.Start();
 
 			container.Register(bus);
 
-			repository = container.Resolve<IScheduleRepository>();
-			databaseConnectionFactory = container.Resolve<IDatabaseConnectionFactory>();
+			repository = container.Resolve<IScheduleRepository>();			
 
 			thread = new Thread(ProcessSchedule);
 
@@ -82,10 +77,7 @@ namespace Shuttle.Scheduling.Server
 		{
 			while (running)
 			{
-				using (databaseConnectionFactory.Create(SchedulerData.Source))
-				{
-					repository.All().ForEach(schedule => schedule.CheckNotification());
-				}
+				repository.All().ForEach(schedule => schedule.CheckNotification());			
 
 				ThreadSleep.While(millisecondsBetweenScheduleChecks, this);
 			}

@@ -21,23 +21,20 @@ namespace Shuttle.Scheduling
 		public IDatabaseConnectionFactory DatabaseConnectionFactory { get; set; }
 
 		public void Handle(SendNotification args)
-		{
-			using (DatabaseConnectionFactory.Create(SchedulerData.Source))
-			{
-				var message = new RunScheduleCommand
-								{
-									Name = args.Schedule.Id,
-									DateDue = args.Due,
-									DateSent = DateTime.Now,
-									ServerName = Environment.MachineName
-								};
+		{            
+			var message = new RunScheduleCommand
+							{
+								Name = args.Schedule.Id,
+								DateDue = args.Due,
+								DateSent = DateTime.Now,
+								ServerName = Environment.MachineName
+							};
 
-				scheduleRepository.SaveNextNotification(args.Schedule);
+			scheduleRepository.SaveNextNotification(args.Schedule);
 
-				Bus.Send(message, args.Schedule.InboxWorkQueueUri);
+			Bus.Send(message, args.Schedule.InboxWorkQueueUri);
 
-				Log.For(this).Debug(string.Format("RunScheduleCommand '{0}' sent to {1}", message.Name, args.Schedule.InboxWorkQueueUri));
-			}
+			Log.For(this).Debug(string.Format("RunScheduleCommand '{0}' sent to {1}", message.Name, args.Schedule.InboxWorkQueueUri));
 		}
 	}
 }
